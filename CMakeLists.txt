@@ -6,8 +6,7 @@ enable_testing()
 
 SET(HEAD  /matrix/Matrix.h)
 SET (SOURCES 
-    main.cpp 
-    /matrix/Matrix.cpp)
+    main.cpp )
 
 add_executable(Matrix main.cpp)
 target_include_directories(Matrix PRIVATE matrix)
