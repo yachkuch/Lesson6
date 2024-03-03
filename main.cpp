@@ -26,5 +26,9 @@ int main(int, char**){
     matr[9][0] = 0;
     std::cout <<  matr [0][0] << '\n';
     std::cout <<  matr.size() << '\n';
+    for(const auto& row : matr)
+    {
+        std::cout << row << '\n';
+    }
     return 0;
 }
