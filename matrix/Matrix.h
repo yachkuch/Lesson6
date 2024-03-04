@@ -1,109 +1,154 @@
 #ifndef MATRIX
 #define MATRIX
 #include <map>
+#include <tuple>
 ///////////////////////////////////////////////////////////
 /// @brief Matrix
 ///
-template <typename T, int size_m = -1> class Matrix {
-  class Iterator : public std::iterator<std::input_iterator_tag, T> {
-    using data = std::map<int, T>;
-    using mainData = std::map<int, data>;
-    using currentDataMain = decltype(mainData::begin());
-    using currentData = decltype(mainData::begin());
-    friend class Matrix;
+template <typename T, int size_m = -1>
+class Matrix
+{
+    class Iterator
+    {
+        using data = std::map<int, T>;
+        using mainData = std::map<int, data>;
+        using currentDataMain = typename mainData::iterator;
+        using currentData = typename data::iterator;
+        friend class Matrix;
 
-    data *datas = nullptr;
-    mainData *mainDatas = nullptr;
-    currentDataMain *currentDatasMain = nullptr;
-    currentData *currentDatas = nullptr;
+        data *datas = nullptr;
+        currentDataMain currentDatasMain;
+        currentDataMain currentDatasMainEnd;
+        currentDataMain currentDatasMainState;
+        currentData currentDatas;
+        int stop = 0;
 
-    void setData(mainData *mainVal, data *dataVal) {
-      datas = dataVal;
-      mainDatas = mainVal;
-      currentDatasMain = mainVal;
-      currentDatas = dataVal;
-    }
+        void setData(mainData *MainData, data *dataVal, currentDataMain main, currentData cur)
+        {
+            if (dataVal == nullptr)
+                return;
+            if (MainData == nullptr)
+                return;
+            datas = dataVal;
+            currentDatasMain = MainData->begin();
+            currentDatas = cur;
+            currentDatasMainEnd = MainData->end();
+            currentDatasMainState = main;
+        }
 
-  public:
-    T &operator[](int i) {
-      if (datas == nullptr)
-        throw std::out_of_range("Matrix is empty");
-      return (*datas)[i];
-    }
+        void setDataEnd(currentDataMain main, currentData cur)
+        {
+            currentDatasMainState = main;
+            currentDatas = cur;
+        }
 
-    bool operator!=(const Iterator &it) const { return datas != it.datas; }
+    public:
+        T &operator[](int i)
+        {
+            return (*datas)[i];
+        }
+        // TODO: Переписать гребанный оператор не равно
+        bool operator!=(const Iterator &it) const
+        {
+            if(stop == 1) return false;
+            auto a1 = std::tie(currentDatasMain, currentDatas);
+            auto a2 = std::tie(it.currentDatasMain, it.currentDatas);
+            return a1 != a2;
+        }
+        Iterator &operator++()
+        {
+            currentDatas++;
+            if ((currentDatasMain == currentDatasMainEnd) && (currentDatas == currentDatasMain.operator*().second.end()))
+                return *this;
+            if (currentDatas == currentDatasMain.operator*().second.end())
+            {
+                currentDatasMain++;
+                if (currentDatasMain != currentDatasMainEnd)
+                {
+                    currentDatas = currentDatasMain.operator*().second.begin();
+                }
+                else 
+                {
+                    stop = 1;
+                }
+            }
+            return *this;
+        }
 
-    Iterator &operator++() {
-      if (datas == *datas->end()) {
+        T &operator*()
+        {
+            if (datas == nullptr)
+                throw std::out_of_range("Matrix is empty");
+            return currentDatas->second;
+        }
+    };
 
-      } else {
-      }
-    }
-
-    T &operator*() {
-      if (datas == nullptr)
-        throw std::out_of_range("Matrix is empty");
-      return;
-    }
-  };
-
-  using iterator = Iterator;
-  using const_iterator = const Iterator;
+    using iterator = Iterator;
+    using const_iterator = const Iterator;
 
 public:
-  Matrix(std::initializer_list<std::initializer_list<T>> list) {
-    int i = 0, j = 0, main_count = 0;
-    for (const auto &row : list) {
-      j = 0;
-      for (const auto &elem : row) {
-        (*this)[i][j] = elem;
-        j++;
-        main_count++;
-      }
-      i++;
+    Matrix() = default;
+    Matrix(std::initializer_list<std::initializer_list<T>> list)
+    {
+        int i = 0, j = 0, main_count = 0;
+        for (const auto &row : list)
+        {
+            j = 0;
+            for (const auto &elem : row)
+            {
+                (*this)[i][j] = elem;
+                j++;
+                main_count++;
+            }
+            i++;
+        }
+        this->m_size = main_count;
     }
-    this->m_size = main_count;
-  }
-  Matrix() { m_iterator.setData(nullptr, nullptr); }
-  int size() {
-    this->m_size = 0;
-    for (const auto &row : m_matrix) {
-      this->m_size += row.second.size();
+    int size()
+    {
+        this->m_size = 0;
+        for (const auto &row : m_matrix)
+        {
+            this->m_size += row.second.size();
+        }
+        return this->m_size;
+    };
+
+    Iterator operator[](int i)
+    {
+        m_iterator.setData(&this->m_matrix, &this->m_matrix[i], this->m_matrix.begin(), this->m_matrix[i].begin());
+        return m_iterator;
     }
-    return this->m_size;
-  };
 
-  Iterator operator[](int i) {
-    m_iterator.setData(&this->m_matrix, &this->m_matrix[i]);
-    m_iterator.mainDatas = &this->m_matrix;
-    return m_iterator;
-  }
+    Iterator begin()
+    {
+        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.begin(), m_matrix[0].begin());
+        return m_iterator;
+    }
 
-  Iterator begin() {
-    m_iterator.setData(&this->m_matrix, &m_matrix[0]);
-    return m_iterator;
-  }
+    Iterator end()
+    {
+        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.end(), m_matrix.end().operator*().second.end());
+        return m_iterator;
+    }
 
-  Iterator end() {
-    m_iterator.setData(nullptr, nullptr);
-    return m_iterator;
-  }
+    const_iterator cbegin() const
+    {
+        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cbegin(), m_matrix[0].cbegin());
+        return m_iterator;
+    }
 
-  const_iterator cbegin() const {
-    m_iterator.setData(&this->m_matrix, &m_matrix[0]);
-    return m_iterator;
-  }
-
-  const_iterator cend() const {
-    m_iterator.setData(nullptr, nullptr);
-    return m_iterator;
-  }
+    const_iterator cend() const
+    {
+        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cend(), m_matrix.operator*().second.cend());
+        return m_iterator;
+    }
 
 private:
-  int m_size = 0;
-  std::map<int, std::map<int, T>> m_matrix;
-  friend class Iterator;
-  Iterator m_iterator;
+    int m_size = 0;
+    std::map<int, std::map<int, T>> m_matrix;
+    friend class Iterator;
+    Iterator m_iterator;
 };
 
 #endif // __MATRIX_H_IARA837CJS5Y__
