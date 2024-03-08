@@ -2,7 +2,7 @@
 #define MATRIX
 #include <map>
 #include <tuple>
-///////////////////////////////////////////////////////////
+
 /// @brief Matrix
 ///
 template <typename T, int size_m = -1>
@@ -50,7 +50,8 @@ class Matrix
         // TODO: Переписать гребанный оператор не равно
         bool operator!=(const Iterator &it) const
         {
-            if(stop == 1) return false;
+            if (stop == 1)
+                return false;
             auto a1 = std::tie(currentDatasMain, currentDatas);
             auto a2 = std::tie(it.currentDatasMain, it.currentDatas);
             return a1 != a2;
@@ -67,7 +68,7 @@ class Matrix
                 {
                     currentDatas = currentDatasMain.operator*().second.begin();
                 }
-                else 
+                else
                 {
                     stop = 1;
                 }
@@ -116,40 +117,45 @@ public:
 
     Iterator operator[](int i)
     {
+        Iterator m_iterator;
         m_iterator.setData(&this->m_matrix, &this->m_matrix[i], this->m_matrix.begin(), this->m_matrix[i].begin());
         return m_iterator;
     }
 
     Iterator begin()
     {
+        Iterator m_iterator;
         m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.begin(), m_matrix[0].begin());
         return m_iterator;
     }
 
     Iterator end()
     {
+        Iterator m_iterator;
         m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.end(), m_matrix.end().operator*().second.end());
         return m_iterator;
     }
 
     const_iterator cbegin() const
     {
+        const_iterator m_iterator;
         m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cbegin(), m_matrix[0].cbegin());
         return m_iterator;
     }
 
     const_iterator cend() const
     {
+        const_iterator m_iterator;
         m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cend(), m_matrix.operator*().second.cend());
         return m_iterator;
     }
 
-    bool contain (const int line,const  int column = 0) const
+    bool contain( int line,  int column = 0) 
     {
         bool found = false;
-        if(m_matrix.contains(line))
+        if (m_matrix.contains(line))
         {
-            if(m_matrix[line].contains(column))
+            if (m_matrix[line].contains(column))
             {
                 found = true;
             }
@@ -157,14 +163,16 @@ public:
         return found;
     }
 
-    Iterator find (const int line,const int column = 0) const
+    Iterator find(const int line, const int column = 0) 
     {
         Iterator it;
-        if(m_matrix.contains(line))
+        auto find = m_matrix.find(line);  
+        if (find!= m_matrix.end())
         {
-            if(m_matrix[line].contains(column))
+            auto find_col = find->second.find(column);
+            if (find_col != find->second.end())
             {
-                it = m_matrix[line][column];
+                it.setData(&this->m_matrix, &m_matrix[0], find,find_col);
             }
         }
         return it;
@@ -174,7 +182,6 @@ private:
     int m_size = 0;
     std::map<int, std::map<int, T>> m_matrix;
     friend class Iterator;
-    Iterator m_iterator;
 };
 
 #endif // __MATRIX_H_IARA837CJS5Y__

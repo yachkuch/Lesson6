@@ -16,5 +16,13 @@ int main(int, char**){
 
         std::cout << row << '\n';
     }
+    std::cout<<"_____________________find matr__________________\n";
+    auto iter = matr.find(1,1);
+    while(iter != matr.end())
+    {
+        std::cout << *iter << '\n';
+        iter.operator++();
+    }
+    std::cout<<"Cotain"<<matr.contain(1,1)<<std::endl;
     return 0;
 }
