@@ -144,6 +144,32 @@ public:
         return m_iterator;
     }
 
+    bool contain (const int line,const  int column = 0) const
+    {
+        bool found = false;
+        if(m_matrix.contains(line))
+        {
+            if(m_matrix[line].contains(column))
+            {
+                found = true;
+            }
+        }
+        return found;
+    }
+
+    Iterator find (const int line,const int column = 0) const
+    {
+        Iterator it;
+        if(m_matrix.contains(line))
+        {
+            if(m_matrix[line].contains(column))
+            {
+                it = m_matrix[line][column];
+            }
+        }
+        return it;
+    }
+
 private:
     int m_size = 0;
     std::map<int, std::map<int, T>> m_matrix;
