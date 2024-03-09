@@ -2,85 +2,59 @@
 #define MATRIX
 #include <map>
 #include <tuple>
-
+#pragma region(MATRIX)
 /// @brief Matrix
 ///
 template <typename T, int size_m = -1>
 class Matrix
 {
+    const int def_val = -1;
     class Iterator
     {
         using data = std::map<int, T>;
         using mainData = std::map<int, data>;
-        using currentDataMain = typename mainData::iterator;
-        using currentData = typename data::iterator;
-        friend class Matrix;
+        using MainIter = typename mainData::iterator;
+        using smallIter = typename data::iterator;
 
-        data *datas = nullptr;
-        currentDataMain currentDatasMain;
-        currentDataMain currentDatasMainEnd;
-        currentDataMain currentDatasMainState;
-        currentData currentDatas;
-        int stop = 0;
+        MainIter maiinData;
+        smallIter smallData;
 
-        void setData(mainData *MainData, data *dataVal, currentDataMain main, currentData cur)
-        {
-            if (dataVal == nullptr)
-                return;
-            if (MainData == nullptr)
-                return;
-            datas = dataVal;
-            currentDatasMain = MainData->begin();
-            currentDatas = cur;
-            currentDatasMainEnd = MainData->end();
-            currentDatasMainState = main;
-        }
-
-        void setDataEnd(currentDataMain main, currentData cur)
-        {
-            currentDatasMainState = main;
-            currentDatas = cur;
-        }
+        data *mainDat = nullptr;
+        bool stopIteration = false;
 
     public:
+        Iterator(MainIter mainData, smallIter mallData) : maiinData(mainData), smallData(mallData) {}
+        explicit Iterator(MainIter mainData) : maiinData(mainData), smallData(maiinData.operator*().second.begin()) {}
+        explicit Iterator(data *m) : mainDat(m) {}
+        // Iterator() = default;
         T &operator[](int i)
         {
-            return (*datas)[i];
+            return (*mainDat)[i];
         }
-        // TODO: Переписать гребанный оператор не равно
-        bool operator!=(const Iterator &it) const
+
+        bool operator!=(const Iterator &el)
         {
-            if (stop == 1)
-                return false;
-            auto a1 = std::tie(currentDatasMain, currentDatas);
-            auto a2 = std::tie(it.currentDatasMain, it.currentDatas);
-            return a1 != a2;
+            auto a = std::make_tuple(this->maiinData, this->smallData);
+            auto b = std::make_tuple(el.maiinData, el.smallData);
+            return a != b;
         }
-        Iterator &operator++()
+
+        Iterator operator++()
         {
-            currentDatas++;
-            if ((currentDatasMain == currentDatasMainEnd) && (currentDatas == currentDatasMain.operator*().second.end()))
-                return *this;
-            if (currentDatas == currentDatasMain.operator*().second.end())
+            if(smallData != maiinData.operator*().second.end())
             {
-                currentDatasMain++;
-                if (currentDatasMain != currentDatasMainEnd)
-                {
-                    currentDatas = currentDatasMain.operator*().second.begin();
-                }
-                else
-                {
-                    stop = 1;
-                }
+            smallData++;
+            }
+            if (smallData == maiinData.operator*().second.end())
+            {
+                maiinData++;
+                smallData = maiinData.operator*().second.begin();
             }
             return *this;
         }
-
-        T &operator*()
+        T operator*()
         {
-            if (datas == nullptr)
-                throw std::out_of_range("Matrix is empty");
-            return currentDatas->second;
+            return smallData.operator*().second;
         }
     };
 
@@ -115,42 +89,38 @@ public:
         return this->m_size;
     };
 
-    Iterator operator[](int i)
+    iterator operator[](int i)
     {
-        Iterator m_iterator;
-        m_iterator.setData(&this->m_matrix, &this->m_matrix[i], this->m_matrix.begin(), this->m_matrix[i].begin());
+
+        iterator m_iterator(&this->m_matrix[i]);
         return m_iterator;
     }
 
-    Iterator begin()
+    iterator begin()
     {
-        Iterator m_iterator;
-        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.begin(), m_matrix[0].begin());
+        iterator m_iterator(m_matrix.begin());
         return m_iterator;
     }
 
-    Iterator end()
+    iterator end()
     {
-        Iterator m_iterator;
-        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.end(), m_matrix.end().operator*().second.end());
+        iterator m_iterator(m_matrix.end(), m_matrix.end().operator*().second.end());
         return m_iterator;
     }
 
     const_iterator cbegin() const
     {
-        const_iterator m_iterator;
-        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cbegin(), m_matrix[0].cbegin());
+        const_iterator m_iterator(m_matrix.begin());
         return m_iterator;
     }
 
     const_iterator cend() const
     {
-        const_iterator m_iterator;
-        m_iterator.setData(&this->m_matrix, &m_matrix[0], this->m_matrix.cend(), m_matrix.operator*().second.cend());
+        const_iterator m_iterator(m_matrix.end(), m_matrix.end().operator*().second.end());
         return m_iterator;
     }
 
-    bool contain( int line,  int column = 0) 
+    bool contain(int line, int column)
     {
         bool found = false;
         if (m_matrix.contains(line))
@@ -163,19 +133,23 @@ public:
         return found;
     }
 
-    Iterator find(const int line, const int column = 0) 
+    bool contain(int line)
     {
-        Iterator it;
-        auto find = m_matrix.find(line);  
-        if (find!= m_matrix.end())
+        return m_matrix.contains(line);
+    }
+
+    iterator find(const int line, const int column = 0)
+    {
+        auto find = m_matrix.find(line);
+        if (find != m_matrix.end())
         {
             auto find_col = find->second.find(column);
             if (find_col != find->second.end())
             {
-                it.setData(&this->m_matrix, &m_matrix[0], find,find_col);
+                return iterator(find,find_col);
             }
         }
-        return it;
+        return this->end();
     }
 
 private:
@@ -183,5 +157,44 @@ private:
     std::map<int, std::map<int, T>> m_matrix;
     friend class Iterator;
 };
+#pragma endregion
+#pragma region(MATRIX_2)
+// template<typename T>
+// class Matrix2
+// {
+//     class Iterator
+//     {
+//         public:
+//         T& operator[](int t)
+//     };
 
+//     using iterator = Iterator;
+//     using const_iterator = const Iterator;
+
+//     std::map<int,std::vector<int,T>> m_matrix;
+
+//     public:
+
+//     iterator& operator [](int i)
+//     {
+//         return m_matrix[i].second;
+//     }
+
+//     iterator begin()
+//     {
+//         return m_matrix.begin();
+//     }
+
+//     iterator end()
+//     {
+//         return m_matrix.end();
+//     }
+
+//     int size() const
+//     {
+//         return m_matrix.size();
+//     }
+
+// };
+#pragma endregion
 #endif // __MATRIX_H_IARA837CJS5Y__
