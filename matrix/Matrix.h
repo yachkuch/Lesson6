@@ -5,11 +5,8 @@
 #pragma region(MATRIX)
 /// @brief Matrix
 ///
-template <typename T, int size_m = -1>
-class Matrix
-{
-    const int def_val = -1;
-    class Iterator
+template<typename T>
+ class Iterator
     {
         using data = std::map<int, T>;
         using mainData = std::map<int, data>;
@@ -41,9 +38,9 @@ class Matrix
 
         Iterator operator++()
         {
-            if(smallData != maiinData.operator*().second.end())
+            if (smallData != maiinData.operator*().second.end())
             {
-            smallData++;
+                smallData++;
             }
             if (smallData == maiinData.operator*().second.end())
             {
@@ -56,10 +53,24 @@ class Matrix
         {
             return smallData.operator*().second;
         }
-    };
 
-    using iterator = Iterator;
-    using const_iterator = const Iterator;
+        template < std::size_t N>
+        decltype(auto) get() const
+        {
+            if constexpr (N == 0)
+                return maiinData->first;
+            else if constexpr (N == 1)
+                return smallData->first;
+            else if constexpr (N == 2)
+                return smallData->second;
+        }
+    };
+template <typename T, int size_m = -1>
+class Matrix
+{
+    const int def_val = -1;
+       using iterator = Iterator<T>;
+    using const_iterator = const Iterator<T>;
 
 public:
     Matrix() = default;
@@ -146,17 +157,76 @@ public:
             auto find_col = find->second.find(column);
             if (find_col != find->second.end())
             {
-                return iterator(find,find_col);
+                return iterator(find, find_col);
             }
         }
         return this->end();
     }
 
+    std::map<int, T> getLine(int line)
+    {
+        std::map<int, T> retVal;
+        if (m_matrix.contains(line))
+        {
+            retVal = m_matrix[line];
+        }
+        return retVal;
+    }
+
+    void printFullMatr()
+    {
+        int lineCount = 0;
+        int rowCount = 0;
+        auto size = matrixSize();
+        for (int i = 0; i < size.first; i++)
+        {
+            auto row = m_matrix.find(i);
+            if (row != m_matrix.end())
+            {
+            }
+            else
+            {
+                for (int j = 0; j < size.second; j++)
+                {
+                    std::cout << "0 ";
+                }
+                std::cout << std::endl;
+            }
+        }
+    }
+
+    std::pair<int, int> matrixSize()
+    {
+        std::pair<int, int> retVal;
+        retVal.first = m_matrix.end().operator*().second.size();
+        for (const auto &el : m_matrix)
+        {
+            int keyBuff = el.second.end().operator*().first;
+            if (retVal.second < keyBuff)
+            {
+                retVal.second = keyBuff;
+            }
+        }
+        return retVal;
+    }
+
 private:
     int m_size = 0;
     std::map<int, std::map<int, T>> m_matrix;
-    friend class Iterator;
+    friend class Iterator<T>;
 };
+
+namespace std
+{
+    template<typename T>
+    struct tuple_size<Iterator<T>> : std::integral_constant<std::size_t, 3> {};
+
+    template<typename T, std::size_t N>
+    struct tuple_element<N, Iterator<T>> {
+        using type = decltype(std::declval<Iterator<T>>().template get<N>());
+    };
+}
+
 #pragma endregion
 #pragma region(MATRIX_2)
 // template<typename T>

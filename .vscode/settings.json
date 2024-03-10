@@ -1,8 +1,4 @@
 {
-    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
-        "clang-diagnostic-error",
-        "clang-diagnostic-error"
-    ],
     "files.associations": {
         ".clang-tidy": "cpp",
         "iostream": "cpp",
@@ -84,7 +80,8 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "*.inc": "cpp"
     },
     "C_Cpp.default.compilerPath": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\bin\\clang-cl.exe",
     "cSpell.words": [
